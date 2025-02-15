@@ -22,8 +22,15 @@ from selenium.webdriver.support.ui import WebDriverWait
 user_agent = {'User-Agent': 'krumpli'}
 logger = logging.getLogger(__name__)
 
+environments = {
+    "UK": {
+        "base_url": "https://www.amazon.co.uk",
+        "sign_in_selector": '#nav-flyout-ya-signin > a.nav-action-signin-button',
+    }
+}
 
-def create_session(email, password, browser_visible=True, proxy=None):
+
+def create_session(email, password, environment, browser_visible=True, proxy=None):
     if not browser_visible:
         display = Display(visible=0)
         display.start()
@@ -34,14 +41,15 @@ def create_session(email, password, browser_visible=True, proxy=None):
         options.add_argument('--proxy-server=' + proxy)
     browser = webdriver.Chrome()
 
-    logger.info("Loading www.amazon.co.uk")
-    browser.get('https://www.amazon.co.uk')
+    base_url = environment["base_url"]
+    logger.info(f"Loading {base_url}")
+    browser.get(base_url)
 
     logger.info("Logging in")
     accountlist = browser.find_element(By.ID, "nav-link-accountList")
     action = ActionChains(browser)
     action.move_to_element(accountlist).perform()
-    browser.find_element(By.CSS_SELECTOR,'#nav-flyout-ya-signin > a.nav-action-signin-button').click()
+    browser.find_element(By.CSS_SELECTOR,environment["sign_in_selector"]).click()
     WebDriverWait(browser, 3).until(
         EC.presence_of_element_located((By.ID, "ap_email_login"))
     )
@@ -54,11 +62,11 @@ def create_session(email, password, browser_visible=True, proxy=None):
     browser.find_element(By.ID,"ap_password").clear()
     browser.find_element(By.ID,"ap_password").send_keys(password)
     browser.find_element(By.ID,"signInSubmit").click()
-    logger.info("Waiting 10 seconds for scripts to run...")
-    sleep(10)
+    logger.info("Waiting 5 seconds for page to fully load...")
+    sleep(5)
 
     logger.info("Getting CSRF token")
-    browser.get('https://www.amazon.co.uk/hz/mycd/digital-console/contentlist/booksAll/dateDsc/')
+    browser.get(f'{base_url}/hz/mycd/digital-console/contentlist/booksAll/dateDsc/')
 
     csrf_token = None  # Initialize csrf_token to a default value
     match = re.search('var csrfToken = "(.*)";', browser.page_source)
@@ -208,14 +216,32 @@ def main():
     if not password:
         password = getpass.getpass("Your Amazon password: ")
 
+    print("Please choose which country's Amazon you want to access!")
+    keys = list(environments.keys())
+    for i in range(len(keys)):
+        print(" " + str(i) + ". " + keys[i])
+    while True:
+        try:
+            choice = int(input("Country #: "))
+        except:
+            logger.error("Not a number!")
+        if choice in range(len(keys)):
+            break
+
     if os.path.isfile(args.outputdir):
         logger.error("Output directory is a file!")
         return -1
     elif not os.path.isdir(args.outputdir):
         os.mkdir(args.outputdir)
 
-    cookies, csrf_token, custid = create_session(args.email, password,
-                                         browser_visible=args.showbrowser, proxy=args.proxy)
+    cookies, csrf_token, custid = create_session(
+        args.email,
+        password,
+        environment = environments[keys[choice]],
+        browser_visible=args.showbrowser,
+        proxy=args.proxy
+    )
+    return
     if not args.asin:
         asins = get_asins(user_agent, cookies, csrf_token)
     else:
