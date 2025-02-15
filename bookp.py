@@ -44,7 +44,7 @@ environments = {
 }
 
 
-def create_session(email, password, environment, browser_visible=True, proxy=None):
+def create_session(email, password, oath, environment, browser_visible=True, proxy=None):
     if not browser_visible:
         display = Display(visible=0)
         display.start()
@@ -76,12 +76,21 @@ def create_session(email, password, environment, browser_visible=True, proxy=Non
     browser.find_element(By.ID,email_selector).clear()
     browser.find_element(By.ID, email_selector).send_keys(email)
     browser.find_element(By.ID, 'continue').click()
-    WebDriverWait(browser, 300).until(
+    WebDriverWait(browser, 3).until(
         EC.presence_of_element_located((By.ID, "ap_password"))
     )
     browser.find_element(By.ID,"ap_password").clear()
     browser.find_element(By.ID,"ap_password").send_keys(password)
     browser.find_element(By.ID,"signInSubmit").click()
+
+    if oath:
+        WebDriverWait(browser, 3).until(
+            EC.presence_of_element_located((By.ID, "auth-mfa-otpcode"))
+        )
+        browser.find_element(By.ID, "auth-mfa-otpcode").clear()
+        browser.find_element(By.ID, "auth-mfa-otpcode").send_keys(oath)
+        browser.find_element(By.ID, "auth-signin-button").click()
+
     logger.info("Waiting 5 seconds for page to fully load...")
     sleep(5)
 
@@ -213,6 +222,7 @@ def main():
     parser.add_argument("--showbrowser", help="display browser while creating session.", action="store_true")
     parser.add_argument("--email", help="Amazon account e-mail address", required=True)
     parser.add_argument("--password", help="Amazon account password", default=None)
+    parser.add_argument("--oath", help="Amazon account oath code", default=None)
     parser.add_argument("--outputdir", help="download directory (default: books)", default="books")
     parser.add_argument("--proxy", help="HTTP proxy server", default=None)
     parser.add_argument("--asin", help="list of ASINs to download", nargs='*')
@@ -237,6 +247,12 @@ def main():
     if not password:
         password = getpass.getpass("Your Amazon password: ")
 
+    oath = args.oath
+    if not oath:
+        oath = getpass.getpass(
+            "Your Amazon Oath (just hit enter if you don't have this): "
+        )
+
     print("Please choose which country's Amazon you want to access!")
     keys = list(environments.keys())
     for i in range(len(keys)):
@@ -259,6 +275,7 @@ def main():
     cookies, csrf_token, custid = create_session(
         args.email,
         password,
+        oath,
         environment,
         browser_visible=args.showbrowser,
         proxy=args.proxy
