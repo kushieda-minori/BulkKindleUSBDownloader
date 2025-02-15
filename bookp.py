@@ -140,8 +140,9 @@ def get_devices(user_agent, cookies, csrf_token):
     return [device for device in devices if 'deviceSerialNumber' in device]
 
 
-def get_asins(user_agent, cookies, csrf_token):
+def get_asins(user_agent, cookies, csrf_token, environment):
     logger.info("Getting e-book list")
+    base_url = environment["base_url"]
     startIndex = 0
     batchSize = 100
     data_json = {
@@ -164,7 +165,7 @@ def get_asins(user_agent, cookies, csrf_token):
     # the safe side, hence the download in batches approach.
     asins = []
     while True:
-        r = requests.post('https://www.amazon.co.uk/hz/mycd/ajax',
+        r = requests.post(f'{base_url}/hz/mycd/ajax',
                           data={'data': json.dumps(data_json), 'csrfToken': csrf_token},
                           headers=user_agent, cookies=cookies)
         rr = json.loads(r.text)
@@ -241,6 +242,7 @@ def main():
             logger.error("Not a number!")
         if choice in range(len(keys)):
             break
+    environment = environments[keys[choice]]
 
     if os.path.isfile(args.outputdir):
         logger.error("Output directory is a file!")
@@ -251,13 +253,13 @@ def main():
     cookies, csrf_token, custid = create_session(
         args.email,
         password,
-        environment = environments[keys[choice]],
+        environment,
         browser_visible=args.showbrowser,
         proxy=args.proxy
     )
-    return
+
     if not args.asin:
-        asins = get_asins(user_agent, cookies, csrf_token)
+        asins = get_asins(user_agent, cookies, csrf_token, environment)
     else:
         asins = args.asin
 
