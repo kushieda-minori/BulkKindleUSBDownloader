@@ -25,8 +25,16 @@ logger = logging.getLogger(__name__)
 environments = {
     "UK": {
         "base_url": "https://www.amazon.co.uk",
+        "account_list_selector":"nav-link-accountList",
         "sign_in_selector": '#nav-flyout-ya-signin > a.nav-action-signin-button',
-    }
+        "email_selector": "ap_email_login",
+    },
+    "USA": {
+        "base_url": "https://www.amazon.com",
+        "account_list_selector":"nav-link-accountList-nav-line-1",
+        "sign_in_selector": '#nav-flyout-ya-signin > a.nav-action-signin-button',
+        "email_selector": "ap_email",
+    },
 }
 
 
@@ -46,15 +54,17 @@ def create_session(email, password, environment, browser_visible=True, proxy=Non
     browser.get(base_url)
 
     logger.info("Logging in")
-    accountlist = browser.find_element(By.ID, "nav-link-accountList")
+    accountlist = browser.find_element(By.ID, environment["account_list_selector"])
     action = ActionChains(browser)
     action.move_to_element(accountlist).perform()
     browser.find_element(By.CSS_SELECTOR,environment["sign_in_selector"]).click()
+
+    email_selector = environment["email_selector"]
     WebDriverWait(browser, 3).until(
-        EC.presence_of_element_located((By.ID, "ap_email_login"))
+        EC.presence_of_element_located((By.ID, email_selector))
     )
-    browser.find_element(By.ID,"ap_email_login").clear()
-    browser.find_element(By.ID, "ap_email_login").send_keys(email)
+    browser.find_element(By.ID,email_selector).clear()
+    browser.find_element(By.ID, email_selector).send_keys(email)
     browser.find_element(By.ID, 'continue').click()
     WebDriverWait(browser, 300).until(
         EC.presence_of_element_located((By.ID, "ap_password"))
