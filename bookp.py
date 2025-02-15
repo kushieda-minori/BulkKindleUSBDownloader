@@ -12,15 +12,18 @@ import urllib.parse
 from argparse import ArgumentParser
 from pyvirtualdisplay import Display
 from selenium import webdriver
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 user_agent = {'User-Agent': 'krumpli'}
 logger = logging.getLogger(__name__)
 
 
-def create_session(email, password, oath, browser_visible=True, proxy=None):
+def create_session(email, password, browser_visible=True, proxy=None):
     if not browser_visible:
-        display = Display(visible=0)
+        display = Display(visible=1)
         display.start()
 
     logger.info("Starting browser")
@@ -31,18 +34,25 @@ def create_session(email, password, oath, browser_visible=True, proxy=None):
 
     logger.info("Loading www.amazon.co.uk")
     browser.get('https://www.amazon.co.uk')
+    print(browser.title)
 
     logger.info("Logging in")
-    browser.find_element(By.CSS_SELECTOR,'#gw-sign-in-button > span > a').click()
-    browser.find_element(By.ID,"ap_email").clear()
-    browser.find_element(By.ID, "ap_email").send_keys(email)
-    browser.find_element(By.CSS_SELECTOR, '.a-button-input').click()
+    accountlist = browser.find_element(By.ID, "nav-link-accountList")
+    action = ActionChains(browser)
+    action.move_to_element(accountlist).perform()
+    browser.find_element(By.CSS_SELECTOR,'#nav-flyout-ya-signin > a.nav-action-signin-button').click()
+    WebDriverWait(browser, 3).until(
+        EC.presence_of_element_located((By.ID, "ap_email_login"))
+    )
+    browser.find_element(By.ID,"ap_email_login").clear()
+    browser.find_element(By.ID, "ap_email_login").send_keys(email)
+    browser.find_element(By.ID, 'continue').click()
+    WebDriverWait(browser, 300).until(
+        EC.presence_of_element_located((By.ID, "ap_password"))
+    )
     browser.find_element(By.ID,"ap_password").clear()
     browser.find_element(By.ID,"ap_password").send_keys(password)
     browser.find_element(By.ID,"signInSubmit").click()
-    browser.find_element(By.ID, "auth-mfa-otpcode").clear()
-    browser.find_element(By.ID, "auth-mfa-otpcode").send_keys(oath)
-    browser.find_element(By.ID, "auth-signin-button").click()
 
     logger.info("Getting CSRF token")
     browser.get('https://www.amazon.co.uk/hz/mycd/digital-console/contentlist/booksAll/dateDsc/')
@@ -171,7 +181,6 @@ def main():
     parser.add_argument("--showbrowser", help="display browser while creating session.", action="store_true")
     parser.add_argument("--email", help="Amazon account e-mail address", required=True)
     parser.add_argument("--password", help="Amazon account password", default=None)
-    parser.add_argument("--oath", help="Amazon account oath code", default=None)
     parser.add_argument("--outputdir", help="download directory (default: books)", default="books")
     parser.add_argument("--proxy", help="HTTP proxy server", default=None)
     parser.add_argument("--asin", help="list of ASINs to download", nargs='*')
@@ -196,17 +205,13 @@ def main():
     if not password:
         password = getpass.getpass("Your Amazon password: ")
 
-    oath = args.oath
-    if not oath:
-        oath = getpass.getpass("Your Amazon Oath: ")
-
     if os.path.isfile(args.outputdir):
         logger.error("Output directory is a file!")
         return -1
     elif not os.path.isdir(args.outputdir):
         os.mkdir(args.outputdir)
 
-    cookies, csrf_token, custid = create_session(args.email, password, oath,
+    cookies, csrf_token, custid = create_session(args.email, password,
                                          browser_visible=args.showbrowser, proxy=args.proxy)
     if not args.asin:
         asins = get_asins(user_agent, cookies, csrf_token)
