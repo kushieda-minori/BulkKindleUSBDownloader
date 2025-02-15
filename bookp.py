@@ -29,8 +29,8 @@ def create_session(email, password, oath, browser_visible=True, proxy=None):
         options.add_argument('--proxy-server=' + proxy)
     browser = webdriver.Chrome()
 
-    logger.info("Loading www.amazon.com")
-    browser.get('https://www.amazon.com')
+    logger.info("Loading www.amazon.co.uk")
+    browser.get('https://www.amazon.co.uk')
 
     logger.info("Logging in")
     browser.find_element(By.CSS_SELECTOR,'#gw-sign-in-button > span > a').click()
@@ -45,7 +45,7 @@ def create_session(email, password, oath, browser_visible=True, proxy=None):
     browser.find_element(By.ID, "auth-signin-button").click()
 
     logger.info("Getting CSRF token")
-    browser.get('https://www.amazon.com/hz/mycd/digital-console/contentlist/booksAll/dateDsc/')
+    browser.get('https://www.amazon.co.uk/hz/mycd/digital-console/contentlist/booksAll/dateDsc/')
 
     csrf_token = None  # Initialize csrf_token to a default value
     match = re.search('var csrfToken = "(.*)";', browser.page_source)
@@ -85,7 +85,7 @@ def get_download_url(user_agent, cookies, csrf_token, asin, device_id):
         }
     }    
 
-    r = requests.post('https://www.amazon.com/hz/mycd/ajax',
+    r = requests.post('https://www.amazon.co.uk/hz/mycd/ajax',
         data={'data':json.dumps(data_json), 'csrfToken':csrf_token},
         headers=user_agent, cookies=cookies)
     rr = json.loads(r.text)["DownloadViaUSB"]
@@ -97,7 +97,7 @@ def get_devices(user_agent, cookies, csrf_token):
     logger.info("Getting device list")
     data_json = {'param': {'GetDevices': {}}}
 
-    r = requests.post('https://www.amazon.com/hz/mycd/ajax',
+    r = requests.post('https://www.amazon.co.uk/hz/mycd/ajax',
                       data={'data': json.dumps(data_json), 'csrfToken': csrf_token},
                       headers=user_agent, cookies=cookies)
     devices = json.loads(r.text)["GetDevices"]["devices"]
@@ -129,7 +129,7 @@ def get_asins(user_agent, cookies, csrf_token):
     # the safe side, hence the download in batches approach.
     asins = []
     while True:
-        r = requests.post('https://www.amazon.com/hz/mycd/ajax',
+        r = requests.post('https://www.amazon.co.uk/hz/mycd/ajax',
                           data={'data': json.dumps(data_json), 'csrfToken': csrf_token},
                           headers=user_agent, cookies=cookies)
         rr = json.loads(r.text)
@@ -146,7 +146,7 @@ def get_asins(user_agent, cookies, csrf_token):
 
 def download_books(user_agent, cookies, device, asins, custid, directory):
     logger.info("Downloading {} books".format(len(asins)))
-    cdn_url = 'https://cde-ta-g7g.amazon.com/FionaCDEServiceEngine/FSDownloadContent'
+    cdn_url = 'https://cde-ta-g7g.amazon.co.uk/FionaCDEServiceEngine/FSDownloadContent'
     cdn_params = 'type=EBOK&key={}&fsn={}&device_type={}&customerId={}&authPool=Amazon'
 
     for asin in asins:
@@ -186,7 +186,7 @@ def main():
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
     logger.addHandler(handler)
-    
+
     logfilename = args.logfile
     if logfilename:
         handlerLog = logging.FileHandler(logfilename)
@@ -228,7 +228,7 @@ def main():
     download_books(user_agent, cookies, devices[choice], asins, custid, args.outputdir)
 
     logger.info('Download complete, open with Serial Number: ' + devices[choice]['deviceSerialNumber'])
-    
+
     print("\n\nAll done!\nNow you can use apprenticeharper's DeDRM tools " \
           "(https://github.com/apprenticeharper/DeDRM_tools)\n" \
           "with the following serial number to remove DRM: " +
@@ -240,4 +240,3 @@ if __name__ == '__main__':
         sys.exit(main())
     except KeyboardInterrupt:
         logger.info("Exiting...")
-
