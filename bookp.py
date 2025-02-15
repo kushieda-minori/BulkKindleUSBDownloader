@@ -128,11 +128,11 @@ def get_download_url(user_agent, cookies, csrf_token, asin, device_id):
 """
 
 
-def get_devices(user_agent, cookies, csrf_token):
+def get_devices(user_agent, cookies, csrf_token, environment):
     logger.info("Getting device list")
     data_json = {'param': {'GetDevices': {}}}
 
-    r = requests.post('https://www.amazon.co.uk/hz/mycd/ajax',
+    r = requests.post(f"{environment['base_url']}/hz/mycd/ajax",
                       data={'data': json.dumps(data_json), 'csrfToken': csrf_token},
                       headers=user_agent, cookies=cookies)
     devices = json.loads(r.text)["GetDevices"]["devices"]
@@ -263,7 +263,7 @@ def main():
     else:
         asins = args.asin
 
-    devices = get_devices(user_agent, cookies, csrf_token)
+    devices = get_devices(user_agent, cookies, csrf_token, environment)
     print("Please choose which device you want to download your e-books to!")
     for i in range(len(devices)):
         print(" " + str(i) + ". " + devices[i]['deviceAccountName'])
