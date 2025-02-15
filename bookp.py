@@ -5,6 +5,9 @@ import json
 import logging
 import os
 import re
+from pprint import pprint
+from time import sleep
+
 import requests
 import sys
 import urllib.parse
@@ -22,8 +25,9 @@ logger = logging.getLogger(__name__)
 
 
 def create_session(email, password, browser_visible=True, proxy=None):
+    print(browser_visible)
     if not browser_visible:
-        display = Display(visible=1)
+        display = Display(visible=0)
         display.start()
 
     logger.info("Starting browser")
@@ -53,6 +57,8 @@ def create_session(email, password, browser_visible=True, proxy=None):
     browser.find_element(By.ID,"ap_password").clear()
     browser.find_element(By.ID,"ap_password").send_keys(password)
     browser.find_element(By.ID,"signInSubmit").click()
+    logger.info("Waiting 10 seconds for scripts to run...")
+    sleep(10)
 
     logger.info("Getting CSRF token")
     browser.get('https://www.amazon.co.uk/hz/mycd/digital-console/contentlist/booksAll/dateDsc/')
@@ -73,7 +79,7 @@ def create_session(email, password, browser_visible=True, proxy=None):
 
     browser.quit()
     if not browser_visible:
-        display.stop();
+        display.stop()
 
     return cookies, csrf_token, custid
 
@@ -143,6 +149,7 @@ def get_asins(user_agent, cookies, csrf_token):
                           data={'data': json.dumps(data_json), 'csrfToken': csrf_token},
                           headers=user_agent, cookies=cookies)
         rr = json.loads(r.text)
+        pprint(rr)
         asins += [book['asin'] for book in rr['OwnershipData']['items']]
 
         if rr['OwnershipData']['hasMoreItems']:
