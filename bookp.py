@@ -250,18 +250,6 @@ def main():
             break
     environment = environments[keys[choice]]
 
-    print("Please choose which country Amazon uses to manage your account!")
-    for i in range(len(keys)):
-        print(" " + str(i) + ". " + keys[i])
-    while True:
-        try:
-            choice = int(input("Country #: "))
-        except:
-            logger.error("Not a number!")
-        if choice in range(len(keys)):
-            break
-    managing_environment = environments[keys[choice]]
-
     if os.path.isfile(args.outputdir):
         logger.error("Output directory is a file!")
         return -1
@@ -292,15 +280,6 @@ def main():
             logger.error("Not a number!")
         if choice in range(len(devices)):
             break
-
-    if environment != managing_environment:
-        cookies, csrf_token, custid = create_session(
-            args.email,
-            password,
-            managing_environment,
-            browser_visible=args.showbrowser,
-            proxy=args.proxy
-        )
 
     download_books(user_agent, cookies, devices[choice], asins, custid, args.outputdir)
 
