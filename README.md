@@ -1,7 +1,13 @@
 # Bulk Kindle USB Downloader
 
 
-This is a fork of [bOOkp](https://github.com/sghctoma/bOOkp) with updates to support OTP and changes to Amazon's link structure for downloading ebooks.
+This is a fork of [BulkKindleUSBDownloader](https://github.com/Jedi425/BulkKindleUSBDownloader), itself a fork of
+[bOOkp](https://github.com/sghctoma/bOOkp). (Thanks, Jedi425 and sghtoma!)
+
+My (bellisk's) updates:
+- support downloading books from amazon.co.uk, amazon.com and amazon.de
+- download books that you have access to because they're shared with you by a family member, as well as books you
+  have purchased
 
 This is a quick'n'dirty script to download all your Kindle ebooks.
 
@@ -42,10 +48,32 @@ manually download them.
 
 ## Usage
 
+1. Install requirements:
+   ```shell
+   pip install -r requirements.txt
+   ```
+   You might also need to install `xvfb`, e.g.:
+   ```shell
+   sudo apt-get install xvfb
+   ```
+2. Then:
+   ```shell
+   ./bookp.py --email {YOUR_EMAIL}
+   ```
+   See below for more options. Your email address is the only mandatory command-line parameter.
+3. The script will prompt you for:
+   - your password, if not given as parameter
+   - your Amazon OATH code (optional)
+   - the Amazon country site that manages your e-books: currently available are UK, USA, and Germany.
+     If you need a different Amazon site, you can edit `bookp.py` to add it to the `environment` array.
+   - the device that you want to download the books for
+
+Full options for the script:
+
 ```
-usage: bookp.py [-h] [--verbose] [--showbrowser] --email EMAIL
+usage: ./bookp.py [-h] [--verbose] [--showbrowser] --email EMAIL
                 [--password PASSWORD] [--outputdir OUTPUTDIR] [--proxy PROXY]
-                [--asin [ASIN [ASIN ...]]] [--logfile FILENAME]
+                [--oath OATH] [--asin [ASIN [ASIN ...]]] [--logfile FILENAME]
 
 Amazon e-book downloader.
 
@@ -55,6 +83,7 @@ optional arguments:
   --showbrowser         display browser while creating session.
   --email EMAIL         Amazon account e-mail address
   --password PASSWORD   Amazon account password
+  --oath OATH           Amazon one-time pass
   --outputdir OUTPUTDIR
                         download directory (default: books)
   --proxy PROXY         HTTP proxy server
