@@ -25,7 +25,6 @@ logger = logging.getLogger(__name__)
 
 
 def create_session(email, password, browser_visible=True, proxy=None):
-    print(browser_visible)
     if not browser_visible:
         display = Display(visible=0)
         display.start()
@@ -38,7 +37,6 @@ def create_session(email, password, browser_visible=True, proxy=None):
 
     logger.info("Loading www.amazon.co.uk")
     browser.get('https://www.amazon.co.uk')
-    print(browser.title)
 
     logger.info("Logging in")
     accountlist = browser.find_element(By.ID, "nav-link-accountList")
@@ -149,7 +147,6 @@ def get_asins(user_agent, cookies, csrf_token):
                           data={'data': json.dumps(data_json), 'csrfToken': csrf_token},
                           headers=user_agent, cookies=cookies)
         rr = json.loads(r.text)
-        pprint(rr)
         asins += [book['asin'] for book in rr['OwnershipData']['items']]
 
         if rr['OwnershipData']['hasMoreItems']:
@@ -163,7 +160,7 @@ def get_asins(user_agent, cookies, csrf_token):
 
 def download_books(user_agent, cookies, device, asins, custid, directory):
     logger.info("Downloading {} books".format(len(asins)))
-    cdn_url = 'https://cde-ta-g7g.amazon.co.uk/FionaCDEServiceEngine/FSDownloadContent'
+    cdn_url = 'https://cde-ta-g7g.amazon.com/FionaCDEServiceEngine/FSDownloadContent'
     cdn_params = 'type=EBOK&key={}&fsn={}&device_type={}&customerId={}&authPool=Amazon'
 
     for asin in asins:
