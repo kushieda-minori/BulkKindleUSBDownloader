@@ -5,7 +5,6 @@ import json
 import logging
 import os
 import re
-from pprint import pprint
 from time import sleep
 
 import requests
@@ -132,7 +131,7 @@ def get_asins(user_agent, cookies, csrf_token):
                 'batchSize': batchSize,
                 'contentType': 'Ebook',
                 'itemStatus': ['Active'],
-                'originType': ['Purchase'],
+                'originType': ['Prime', 'Purchase', 'Sharing'],
             }
         }
     }
