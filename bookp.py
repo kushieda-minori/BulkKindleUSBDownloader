@@ -54,7 +54,11 @@ def create_session(email, password, environment, browser_visible=True, proxy=Non
     browser.get(base_url)
 
     logger.info("Logging in")
-    accountlist = browser.find_element(By.ID, environment["account_list_selector"])
+    account_list_selector = environment["account_list_selector"]
+    WebDriverWait(browser, 3).until(
+        EC.presence_of_element_located((By.ID, account_list_selector))
+    )
+    accountlist = browser.find_element(By.ID, account_list_selector)
     action = ActionChains(browser)
     action.move_to_element(accountlist).perform()
     browser.find_element(By.CSS_SELECTOR,environment["sign_in_selector"]).click()
