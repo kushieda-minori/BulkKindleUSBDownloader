@@ -64,7 +64,7 @@ manually download them.
 3. The script will prompt you for:
    - your password, if not given as parameter
    - your Amazon OATH code (optional)
-   - the Amazon country site that manages your e-books: currently available are UK, USA, Germany and Italy.
+   - the Amazon country site that manages your e-books: currently available are UK, USA, Germany, Italy and Canada.
      If you need a different Amazon site, you can edit `bookp.py` to add it to the `environment` array.
    - the device that you want to download the books for
 
