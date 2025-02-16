@@ -41,6 +41,12 @@ environments = {
         "sign_in_selector": '#nav-flyout-ya-signin > a.nav-action-signin-button',
         "email_selector": "ap_email",
     },
+    "Italy": {
+        "base_url": "https://www.amazon.it/",
+        "account_list_selector":"nav-link-accountList-nav-line-1",
+        "sign_in_selector": '#nav-flyout-ya-signin > a.nav-action-signin-button',
+        "email_selector": "ap_email",
+    },
 }
 
 
