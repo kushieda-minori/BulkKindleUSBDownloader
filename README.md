@@ -5,7 +5,7 @@ This is a fork of [BulkKindleUSBDownloader](https://github.com/Jedi425/BulkKindl
 [bOOkp](https://github.com/sghctoma/bOOkp). (Thanks, Jedi425 and sghtoma!)
 
 My (bellisk's) updates:
-- support downloading books from amazon.co.uk, amazon.com and amazon.de
+- support downloading books from amazon.co.uk, amazon.com, amazon.de and amazon.it
 - download books that you have access to because they're shared with you by a family member, as well as books you
   have purchased
 
@@ -64,7 +64,7 @@ manually download them.
 3. The script will prompt you for:
    - your password, if not given as parameter
    - your Amazon OATH code (optional)
-   - the Amazon country site that manages your e-books: currently available are UK, USA, and Germany.
+   - the Amazon country site that manages your e-books: currently available are UK, USA, Germany and Italy.
      If you need a different Amazon site, you can edit `bookp.py` to add it to the `environment` array.
    - the device that you want to download the books for
 
