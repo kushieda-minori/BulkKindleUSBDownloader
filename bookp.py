@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import re
+import tempfile
 from time import sleep
 
 import requests
@@ -58,6 +59,12 @@ def create_session(email, password, oath, environment, browser_visible=True, pro
     logger.info("Starting browser")
     options = webdriver.ChromeOptions()
     options.add_argument("--window-size=2560,1440")
+    if not browser_visible:
+        temp_dir = tempfile.mkdtemp()
+        options.add_argument(f"--user-data-dir={temp_dir}")
+        options.add_argument("--headless")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-gpu")
     if proxy:
         options.add_argument('--proxy-server=' + proxy)
     browser = webdriver.Chrome(options=options)
@@ -140,7 +147,7 @@ def get_download_url(user_agent, cookies, csrf_token, asin, device_id):
                 'originType':'Purchase'
             }
         }
-    }    
+    }
 
     r = requests.post('https://www.amazon.co.uk/hz/mycd/ajax',
         data={'data':json.dumps(data_json), 'csrfToken':csrf_token},
