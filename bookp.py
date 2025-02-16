@@ -57,9 +57,10 @@ def create_session(email, password, oath, environment, browser_visible=True, pro
 
     logger.info("Starting browser")
     options = webdriver.ChromeOptions()
+    options.add_argument("--window-size=2560,1440")
     if proxy:
         options.add_argument('--proxy-server=' + proxy)
-    browser = webdriver.Chrome()
+    browser = webdriver.Chrome(options=options)
 
     base_url = environment["base_url"]
     logger.info(f"Loading {base_url}")
