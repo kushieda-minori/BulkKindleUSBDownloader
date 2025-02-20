@@ -32,6 +32,7 @@ environments = {
     },
     "USA": {
         "base_url": "https://www.amazon.com",
+        "signin_url":'https://www.amazon.com/ap/signin?openid.pape.max_auth_age=0&openid.return_to=https%3A%2F%2Fwww.amazon.com%2Fgp%2Fcss%2Fhomepage.html%2Fref%3Dnav_ya_signin&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.assoc_handle=usflex&openid.mode=checkid_setup&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0',
         "account_list_selector":"nav-link-accountList-nav-line-1",
         "sign_in_selector": '#nav-flyout-ya-signin > a.nav-action-signin-button',
         "email_selector": "ap_email",
@@ -88,19 +89,23 @@ def create_session(email, password, oath, environment, browser_visible=True, pro
     browser = webdriver.Chrome(options=options)
 
     base_url = environment["base_url"]
+    signin_url = environment["signin_url"]
     logger.info(f"Loading {base_url}")
-    browser.get(base_url)
+    if signin_url:
+        browser.get(signin_url)
+    else:
+        browser.get(base_url)
+        logger.info("loading login page")
+        account_list_selector = environment["account_list_selector"]
+        WebDriverWait(browser, 3).until(
+            EC.presence_of_element_located((By.ID, account_list_selector))
+        )
+        accountlist = browser.find_element(By.ID, account_list_selector)
+        action = ActionChains(browser)
+        action.move_to_element(accountlist).perform()
+        browser.find_element(By.CSS_SELECTOR,environment["sign_in_selector"]).click()
 
     logger.info("Logging in")
-    account_list_selector = environment["account_list_selector"]
-    WebDriverWait(browser, 3).until(
-        EC.presence_of_element_located((By.ID, account_list_selector))
-    )
-    accountlist = browser.find_element(By.ID, account_list_selector)
-    action = ActionChains(browser)
-    action.move_to_element(accountlist).perform()
-    browser.find_element(By.CSS_SELECTOR,environment["sign_in_selector"]).click()
-
     email_selector = environment["email_selector"]
     WebDriverWait(browser, 3).until(
         EC.presence_of_element_located((By.ID, email_selector))
@@ -123,8 +128,11 @@ def create_session(email, password, oath, environment, browser_visible=True, pro
         browser.find_element(By.ID, "auth-mfa-otpcode").send_keys(oath)
         browser.find_element(By.ID, "auth-signin-button").click()
 
-    logger.info("Waiting 5 seconds for page to fully load...")
-    sleep(5)
+    waitTime=15
+    if not browser_visible:
+        waitTime=5
+    logger.info(f"Waiting {waitTime} seconds for page to fully load. If there is a captcha, please fill it in..")
+    sleep(waitTime)
 
     logger.info("Getting CSRF token")
     browser.get(f'{base_url}/hz/mycd/digital-console/contentlist/booksAll/dateDsc/')
