@@ -54,13 +54,24 @@ If running on MacOS you must use the --showbrowser option, as xvfb isn't support
    ```shell
    pip install -r requirements.txt
    ```
-   You might also need to install `xvfb`, e.g.:
+   If the requirements install fails, you may need to run in a python virtual environment. You can do that with the following commands on Linux, OSX or (WSL):
+   ```shell
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   ```
+   On Linux or (WSL), you might also need to install `xvfb`, e.g.:
    ```shell
    sudo apt-get install xvfb
    ```
 2. Then:
    ```shell
    ./bookp.py --email {YOUR_EMAIL}
+   ```
+   If you needed to use the virtual environment and left it, you can re-enter it by running the following before running `bookp.py`
+   ```shell
+   python3 -m venv .venv
+   source .venv/bin/activate
    ```
    See below for more options. Your email address is the only mandatory command-line parameter.
 3. The script will prompt you for:
@@ -93,6 +104,10 @@ optional arguments:
                         list of ASINs to download
   --logfile FILENAME    log output to a file
 ```
+
+## Troubleshooting
+
+If you are having issues with getting a working session, it may be due to Amazon displaying a captcha challenge. Use the `--showbrowser` option to see the chrome session. You will then have about 15 seconds to enter the captcha challenge.
 
 ## Requirements
 
